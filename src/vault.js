@@ -36,16 +36,23 @@ var SecretCollection = function(path, secrets) {
     });
   }
 
-  self.getSecretsAsObject = function() {
+  self.getSecretsAsObject = function(stringify) {
     var secrets = {};
     ko.utils.arrayForEach(self.secrets(), function(s) {
-      secrets[s.name()] = s.secret();
+      if(typeof s.secret() === "object" && stringify === true){
+        secrets[s.name()] = JSON.stringify(s.secret());
+      }else if(!stringify && s.secret().indexOf('{') !== -1 && s.secret().indexOf('{') < 5 ){
+        secrets[s.name()] = JSON.parse(s.secret());
+      }else{
+        secrets[s.name()] = s.secret();
+      }
+
     });
     return secrets;
   }
 
   self.edit = function() {
-    var collection = new SecretCollection(path, self.getSecretsAsObject());
+    var collection = new SecretCollection(path, self.getSecretsAsObject(true));
     page.secretForm().setupEdit(collection);
     page.secretForm().show();
   }
